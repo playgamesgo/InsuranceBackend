@@ -1,5 +1,9 @@
 package me.bivhak.insurance.main.controllers;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import me.bivhak.insurance.main.models.Role;
 import me.bivhak.insurance.main.models.Roles;
@@ -71,7 +75,11 @@ public class AuthController {
      * @return a response containing the JWT token
      */
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User authenticated successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: Invalid username or password", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+    })
+    public ResponseEntity<JwtResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         // Authenticate the user
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
@@ -90,6 +98,10 @@ public class AuthController {
      * @return a response containing the registered user details
      */
     @PostMapping("/signup")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User registered successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: Username or Email is already taken", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+    })
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         // Check if the username is already taken
         if (userRepository.existsByUsername(signUpRequest.getLogin())) {
@@ -126,7 +138,11 @@ public class AuthController {
      * @return a response indicating the result of the operation
      */
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest) {
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password reset link sent successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: User not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+    })
+    public ResponseEntity<MessageResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest) {
         // Check if the user exists
         String email = forgotPasswordRequest.getEmail();
         User user = userRepository.findByEmail(email)
@@ -155,7 +171,12 @@ public class AuthController {
      * @return a response indicating the result of the operation
      */
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password reset successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: Token is required", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: Invalid or expired token", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+    })
+    public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
         // Check if the token is valid
         String token = resetPasswordRequest.getToken();
         String newPassword = resetPasswordRequest.getNewPassword();
@@ -189,14 +210,17 @@ public class AuthController {
      * @return a response containing the user details
      */
     @GetMapping("/me")
-    public ResponseEntity<?> me() {
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User details retrieved successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Error: User not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+    })
+    public ResponseEntity<UserResponse> me() {
         // Get the current authenticated user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         Optional<User> user = userService.findByUsername(currentUsername);
 
         // Return the user details
-        if (user.isEmpty()) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(UserResponse.fromUser(user.get()));
+        return user.map(value -> ResponseEntity.ok(UserResponse.fromUser(value))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
