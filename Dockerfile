@@ -7,6 +7,9 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
+# Install findutils
+RUN microdnf install findutils
+
 # Make Gradle wrapper executable
 RUN chmod +x ./gradlew
 
