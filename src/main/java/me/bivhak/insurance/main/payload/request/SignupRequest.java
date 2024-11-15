@@ -1,27 +1,26 @@
 package me.bivhak.insurance.main.payload.request;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.relational.core.mapping.Embedded;
 
-/**
- * Request payload for user signup functionality.
- */
+
 @Setter
 @Getter
-public final class SignupRequest {
+public class SignupRequest {
     @NotBlank
-    @Size(min = 4, max = 16)
-    private String login;
-
+    @Size(min = 3, max = 20)
+    private String username;
+ 
     @NotBlank
-    @Size(max = 64)
+    @Size(max = 50)
     @Email
     private String email;
-
+    
     @NotBlank
-    @Size(min = 8, max = 64)
+    @Size(min = 6, max = 40)
     private String password;
 
 }

@@ -1,29 +1,39 @@
 package me.bivhak.insurance.main.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
-/**
- * Role model class
- */
 @Entity
-@Getter
-@Setter
 @Table(name = "roles")
-public final class Role {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Role {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20, unique = true)
-    private Roles name;
+	@Enumerated(EnumType.STRING)
+	@Column(length = 20)
+	private ERole name;
 
-    public Role() {
-    }
+	public Role() {
 
-    public Role(Roles name) {
-        this.name = name;
-    }
+	}
+
+	public Role(ERole name) {
+		this.name = name;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public ERole getName() {
+		return name;
+	}
+
+	public void setName(ERole name) {
+		this.name = name;
+	}
 }

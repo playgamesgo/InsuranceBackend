@@ -1,7 +1,7 @@
 package me.bivhak.insurance.main.services;
 
-import me.bivhak.insurance.main.models.User;
-import me.bivhak.insurance.main.repository.UserRepository;
+import me.bivhak.insurance.main.models.Company;
+import me.bivhak.insurance.main.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,28 +10,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class UserService implements UserDetailsService {
+public class CompanyService implements UserDetailsService {
     @Autowired
-    UserRepository userRepository;
+    CompanyRepository companyRepository;
 
-    @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
+        Company company = companyRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Company Not Found with username: " + username));
 
-        return UserDetailsImpl.build(user);
+        return UserDetailsImpl.build(company);
     }
 
     public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
+        return companyRepository.existsByUsername(username);
     }
 
     public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+        return companyRepository.existsByEmail(email);
     }
 
-    public void save(User user) {
-      userRepository.save(user);
+    public void save(Company company) {
+        companyRepository.save(company);
     }
 }
