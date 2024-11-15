@@ -33,15 +33,19 @@ public final class JwtUtils {
      * @return a JWT token as a String.
      */
     public String generateJwtToken(Authentication authentication) {
-        // Get the user details from the authentication object.
-        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+        return generateJwtToken((UserDetailsImpl) authentication.getPrincipal());
+    }
 
-        // Generate the JWT token.
+    public String generateJwtToken(UserDetailsImpl userPrincipal) {
+        return generateTokenFromUsername(userPrincipal.getUsername());
+    }
+
+    public String generateTokenFromUsername(String username) {
         return Jwts.builder()
-                .subject((userPrincipal.getUsername()))
+                .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
-                .signWith(key(), SignatureAlgorithm.HS256)
+                .expiration(new Date((new Date()).getTime() + jwtExpirationMs)).
+                signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }
 

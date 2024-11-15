@@ -3,17 +3,16 @@ package me.bivhak.insurance.main.payload.response;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Response payload for JWT authentication.
- */
-@Getter
 @Setter
-public final class JwtResponse {
+@Getter
+public class TokenRefreshResponse {
     private String accessToken;
-    private String tokenType = "Bearer";
     private String refreshToken;
+    private String tokenType = "Bearer";
 
-    public JwtResponse(String accessToken) {
+    public TokenRefreshResponse(String accessToken, String refreshToken) {
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
     }
+
 }

@@ -5,20 +5,21 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import me.bivhak.insurance.main.exception.TokenRefreshException;
+import me.bivhak.insurance.main.models.RefreshToken;
 import me.bivhak.insurance.main.models.Role;
 import me.bivhak.insurance.main.models.Roles;
 import me.bivhak.insurance.main.models.User;
-import me.bivhak.insurance.main.payload.request.ForgotPasswordRequest;
-import me.bivhak.insurance.main.payload.request.LoginRequest;
-import me.bivhak.insurance.main.payload.request.ResetPasswordRequest;
-import me.bivhak.insurance.main.payload.request.SignupRequest;
+import me.bivhak.insurance.main.payload.request.*;
 import me.bivhak.insurance.main.payload.response.JwtResponse;
 import me.bivhak.insurance.main.payload.response.MessageResponse;
+import me.bivhak.insurance.main.payload.response.TokenRefreshResponse;
 import me.bivhak.insurance.main.payload.response.UserResponse;
 import me.bivhak.insurance.main.repository.RoleRepository;
 import me.bivhak.insurance.main.repository.UserRepository;
 import me.bivhak.insurance.main.security.jwt.JwtUtils;
 import me.bivhak.insurance.main.services.EmailService;
+import me.bivhak.insurance.main.services.RefreshTokenService;
 import me.bivhak.insurance.main.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,13 +52,14 @@ public class AuthController {
     private final RedisTemplate<String, String> redisTemplate;
     private final EmailService emailService;
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${frontend.url}")
     private String frontendUrl;
 
     @Autowired
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository,
-                          RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils, @Qualifier("redisTemplate") RedisTemplate<String, String> redisTemplate, EmailService emailService, UserService userService) {
+                          RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils, @Qualifier("redisTemplate") RedisTemplate<String, String> redisTemplate, EmailService emailService, UserService userService, RefreshTokenService refreshTokenService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -66,6 +68,7 @@ public class AuthController {
         this.redisTemplate = redisTemplate;
         this.emailService = emailService;
         this.userService = userService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     /**
@@ -129,6 +132,25 @@ public class AuthController {
         userRepository.save(user);
 
         return ResponseEntity.ok(UserResponse.fromUser(user));
+    }
+
+    @PostMapping("/refreshtoken")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token refreshed successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = TokenRefreshResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: Refresh token is not in database", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+    })
+    public ResponseEntity<TokenRefreshResponse> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                    String token = jwtUtils.generateTokenFromUsername(user.getUsername());
+                    return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
+                })
+                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
+                        "Refresh token is not in database!"));
     }
 
     /**
