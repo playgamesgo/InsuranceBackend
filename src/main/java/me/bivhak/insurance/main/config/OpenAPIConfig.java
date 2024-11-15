@@ -34,7 +34,7 @@ public class OpenAPIConfig {
 
         // Define the API information
         Info info = new Info()
-                .title("PetWorld API")
+                .title("Insurance API")
                 .version("v1");
 
         // Return the OpenAPI instance
