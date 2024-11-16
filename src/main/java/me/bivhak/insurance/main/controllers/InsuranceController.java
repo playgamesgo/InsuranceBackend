@@ -161,7 +161,8 @@ public class InsuranceController {
 
         // Check if user is an agent and has permission to update insurance
         if (userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_AGENT"))) {
-            if (agentService.findById(userDetails.getId()).isPresent() && !insurance.getAgents().contains(agentService.findById(userDetails.getId()).get())) {
+            if (agentService.findById(userDetails.getId()).isPresent() &&
+                    insurance.getAgents().stream().noneMatch(a -> a.getAgent().getId().equals(userDetails.getId()))) {
                 return ResponseEntity.badRequest().body(new MessageResponse("Error: No permission to update insurance!"));
             }
             // Check if user is a company and updates insurance for self
