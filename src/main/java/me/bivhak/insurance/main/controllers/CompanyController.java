@@ -82,6 +82,10 @@ public class CompanyController extends AbstractUserController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Agent not found!"));
         }
 
+        if (company.getAgents().stream().anyMatch(a -> a.getId().equals(agent.getId()))) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Agent already assigned to company!"));
+        }
+
 
         company.getAgents().add(agent);
 
