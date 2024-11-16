@@ -29,10 +29,10 @@ public class CreateInsuranceRequest {
     private String conditionsInsurance;
 
     @NotBlank
-    private float maxAmount;
+    private Float maxAmount;
 
     @NotBlank
-    private float amount;
+    private Float amount;
 
     public CreateInsuranceRequest() {
     }

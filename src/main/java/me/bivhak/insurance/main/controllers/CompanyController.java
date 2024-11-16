@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import me.bivhak.insurance.main.models.Agent;
 import me.bivhak.insurance.main.models.Company;
 import me.bivhak.insurance.main.models.CompanyAgentPermission;
@@ -48,7 +49,7 @@ public class CompanyController extends AbstractUserController {
             @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: Agent not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
     })
-    public ResponseEntity<?> assignAgent(AssignAgentRequest request) {
+    public ResponseEntity<?> assignAgent(@Valid @RequestBody AssignAgentRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
@@ -124,7 +125,7 @@ public class CompanyController extends AbstractUserController {
             @ApiResponse(responseCode = "400", description = "Error: Agent not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: Agent not assigned to company!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
     })
-    public ResponseEntity<?> updateAgentPermissions(AssignAgentRequest request) {
+    public ResponseEntity<?> updateAgentPermissions(@Valid @RequestBody AssignAgentRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));

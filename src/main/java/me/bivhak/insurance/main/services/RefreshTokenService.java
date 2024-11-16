@@ -33,20 +33,33 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }
 
-    public RefreshToken createRefreshToken(String type, Long userId) {
-        RefreshToken refreshToken = new RefreshToken();
+    @Transactional
+    public RefreshToken createRefreshToken(String type, Long id) {
+        Optional<RefreshToken> existingToken = switch (type) {
+            case "user" -> refreshTokenRepository.findById(id);
+            case "agent" -> refreshTokenRepository.findById(id);
+            case "company" -> refreshTokenRepository.findById(id);
+            default -> throw new IllegalArgumentException("Invalid user type: " + type);
+        };
 
-        switch (type) {
-            case "user" -> refreshToken.setUser(userRepository.findById(userId).get());
-            case "agent" -> refreshToken.setAgent(agentService.findById(userId).get());
-            case "company" -> refreshToken.setCompany(companyService.findById(userId).get());
+        if (existingToken.isPresent()) {
+            RefreshToken refreshToken = existingToken.get();
+            refreshToken.setToken(UUID.randomUUID().toString());
+            refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
+            return refreshTokenRepository.save(refreshToken);
+        } else {
+            RefreshToken refreshToken = new RefreshToken();
+            refreshToken.setToken(UUID.randomUUID().toString());
+            refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
+
+            switch (type) {
+                case "user" -> refreshToken.setUser(userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found")));
+                case "agent" -> refreshToken.setAgent(agentService.findById(id).orElseThrow(() -> new RuntimeException("Agent not found")));
+                case "company" -> refreshToken.setCompany(companyService.findById(id).orElseThrow(() -> new RuntimeException("Company not found")));
+            }
+
+            return refreshTokenRepository.save(refreshToken);
         }
-
-        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
-        refreshToken.setToken(UUID.randomUUID().toString());
-
-        refreshToken = refreshTokenRepository.save(refreshToken);
-        return refreshToken;
     }
 
     public RefreshToken verifyExpiration(RefreshToken token) {
