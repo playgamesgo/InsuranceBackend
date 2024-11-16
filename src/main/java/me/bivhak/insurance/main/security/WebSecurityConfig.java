@@ -31,8 +31,12 @@ public class WebSecurityConfig {
     private final CompanyService companyService;
     private final AuthEntryPointJwt unauthorizedHandler;
 
+    @Value("${frontend.dev}")
+    private String frontendDev;
+
     @Value("${frontend.url}")
     private String frontendUrl;
+
 
     @Autowired
     public WebSecurityConfig(UserService userService, AgentService agentService, CompanyService companyService, AuthEntryPointJwt unauthorizedHandler) {
@@ -102,6 +106,7 @@ public class WebSecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
+                        .allowedOriginPatterns(frontendDev)
                         .allowedOriginPatterns(frontendUrl)
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowedHeaders("*").maxAge(3600);
