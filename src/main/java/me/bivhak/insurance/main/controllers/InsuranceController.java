@@ -46,6 +46,14 @@ public class InsuranceController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
         }
 
+        if (createInsuranceRequest.getName() == null || createInsuranceRequest.getCompanyId() == null || createInsuranceRequest.getDescription() == null ||
+                createInsuranceRequest.getExpiresIn() == null || createInsuranceRequest.getObjectInsurance() == null ||
+                createInsuranceRequest.getRiskInsurance() == null || createInsuranceRequest.getConditionsInsurance() == null ||
+                createInsuranceRequest.getMaxAmount() == null || createInsuranceRequest.getAmount() == null ||
+                createInsuranceRequest.getDuration() == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: All fields are required!"));
+        }
+
         if (userDetails.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_AGENT") || a.getAuthority().equals("ROLE_COMPANY"))) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No permission to create insurance!"));
         }
@@ -60,14 +68,6 @@ public class InsuranceController {
                 company.getAgentPermissions().stream().noneMatch(a -> a.getAgent().getId().equals(userDetails.getId()) &&
                         a.getPermissions().contains(EPermission.CREATE_INSURANCE))) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No permission to create insurance!"));
-        }
-
-        if (createInsuranceRequest.getName() == null || createInsuranceRequest.getDescription() == null ||
-                createInsuranceRequest.getExpiresIn() == null || createInsuranceRequest.getObjectInsurance() == null ||
-                createInsuranceRequest.getRiskInsurance() == null || createInsuranceRequest.getConditionsInsurance() == null ||
-                createInsuranceRequest.getMaxAmount() == null || createInsuranceRequest.getAmount() == null ||
-                createInsuranceRequest.getDuration() == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: All fields are required!"));
         }
 
         Insurance insurance = new Insurance(company,
@@ -133,6 +133,10 @@ public class InsuranceController {
 
         if (userDetails.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_AGENT") || a.getAuthority().equals("ROLE_COMPANY"))) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No permission to update insurance!"));
+        }
+
+        if (updateInsuranceRequest.getCompanyId() == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Company not found!"));
         }
 
         if (insuranceService.findById(updateInsuranceRequest.getCompanyId()).isEmpty()) {
