@@ -2,7 +2,11 @@ package me.bivhak.insurance.main.payload.request;
 
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 public class LoginRequest {
 	@NotBlank
 	private String username;
@@ -10,19 +14,8 @@ public class LoginRequest {
 	@NotBlank
 	private String password;
 
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
+    public LoginRequest(String username, String password) {
 		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
 		this.password = password;
 	}
 }

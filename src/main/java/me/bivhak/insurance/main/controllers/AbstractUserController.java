@@ -53,7 +53,7 @@ public abstract class AbstractUserController {
 
     @PostMapping("/signup")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User registered successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "200", description = "User registered successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: Username is already taken!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: Email is already in use!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
     })
@@ -74,7 +74,7 @@ public abstract class AbstractUserController {
 
                 userService.save(user);
 
-                return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+                return loginUser(new LoginRequest(signUpRequest.getUsername(), signUpRequest.getPassword()));
             }
             case "agent" -> {
                 if (agentService.existsByUsername(signUpRequest.getUsername())) {
@@ -91,7 +91,7 @@ public abstract class AbstractUserController {
 
                 agentService.save(agent);
 
-                return ResponseEntity.ok(new MessageResponse("Agent registered successfully!"));
+                return loginUser(new LoginRequest(signUpRequest.getUsername(), signUpRequest.getPassword()));
             }
 
             case "company" -> {
@@ -109,7 +109,7 @@ public abstract class AbstractUserController {
 
                 companyService.save(company);
 
-                return ResponseEntity.ok(new MessageResponse("Company registered successfully!"));
+                return loginUser(new LoginRequest(signUpRequest.getUsername(), signUpRequest.getPassword()));
             }
         }
         return ResponseEntity.badRequest().body(new MessageResponse("Error: Invalid user type!"));

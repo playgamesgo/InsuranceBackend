@@ -3,8 +3,6 @@ package me.bivhak.insurance.main.payload.response;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 public class JwtResponse {
 	private String token;
 	private String type = "Bearer";

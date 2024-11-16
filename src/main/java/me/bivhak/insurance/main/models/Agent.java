@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @Entity
@@ -35,6 +37,9 @@ public class Agent {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
     private Role role;
+
+    @ManyToMany(mappedBy = "agents")
+    private Set<Company> companies;
 
     public Agent() {
     }
