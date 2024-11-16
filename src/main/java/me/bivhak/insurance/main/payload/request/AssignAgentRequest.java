@@ -1,6 +1,6 @@
 package me.bivhak.insurance.main.payload.request;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import me.bivhak.insurance.main.models.EPermission;
@@ -10,9 +10,9 @@ import java.util.Set;
 @Getter
 @Setter
 public class AssignAgentRequest {
-    @NotBlank
+    @NotNull
     private Long agentId;
 
-    @NotBlank
+    @NotNull
     private Set<EPermission> permissions;
 }

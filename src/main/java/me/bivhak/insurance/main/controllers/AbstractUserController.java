@@ -60,24 +60,11 @@ public abstract class AbstractUserController {
             @ApiResponse(responseCode = "400", description = "Error: Email is already in use!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
     })
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+        if (signUpRequest.getUsername().isEmpty() || signUpRequest.getEmail().isEmpty() || signUpRequest.getPassword().isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Empty fields!"));
+        }
+
         switch (type) {
-            case "user" -> {
-                if (userService.existsByUsername(signUpRequest.getUsername())) {
-                    return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
-                }
-
-                if (userService.existsByEmail(signUpRequest.getEmail())) {
-                    return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
-                }
-
-                User user = new User(signUpRequest.getUsername(), signUpRequest.getEmail(),
-                        encoder.encode(signUpRequest.getPassword()));
-                user.setRole(roleRepository.findByName(ERole.ROLE_USER).orElseThrow(() -> new RuntimeException("Error: Role is not found.")));
-
-                userService.save(user);
-
-                return loginUser(new LoginRequest(signUpRequest.getUsername(), signUpRequest.getPassword()));
-            }
             case "agent" -> {
                 if (agentService.existsByUsername(signUpRequest.getUsername())) {
                     return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
@@ -123,6 +110,10 @@ public abstract class AbstractUserController {
             @ApiResponse(responseCode = "400", description = "Error: Invalid username or password!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
     })
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest signUpRequest) {
+        if (signUpRequest.getUsername().isEmpty() || signUpRequest.getPassword().isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Empty fields!"));
+        }
+
         Authentication authentication = userAuthenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(signUpRequest.getUsername(), signUpRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -139,17 +130,11 @@ public abstract class AbstractUserController {
             @ApiResponse(responseCode = "400", description = "Error: Invalid refresh token!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
     })
     public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequest refreshRequest) {
+        if (refreshRequest.getRefreshToken().isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Empty refresh token!"));
+        }
+
         switch (type) {
-            case "user" -> {
-                return refreshTokenService.findByToken(refreshRequest.getRefreshToken())
-                        .map(refreshTokenService::verifyExpiration)
-                        .map(RefreshToken::getUser)
-                        .map(userDetails -> {
-                            String jwt = jwtUtils.generateTokenFromUsername(userDetails.getUsername(), List.of(userDetails.getRole().getName().name()));
-                            return ResponseEntity.ok(new TokenRefreshResponse(jwt, refreshRequest.getRefreshToken()));
-                        })
-                        .orElseThrow(() -> new TokenRefreshException(refreshRequest.getRefreshToken(), "Refresh token is not in database!"));
-            }
             case "agent" -> {
                 return refreshTokenService.findByToken(refreshRequest.getRefreshToken())
                         .map(refreshTokenService::verifyExpiration)
