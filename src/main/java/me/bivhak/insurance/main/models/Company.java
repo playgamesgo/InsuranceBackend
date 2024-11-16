@@ -46,9 +46,6 @@ public class Company {
     )
     private Set<Agent> agents;
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CompanyAgentPermission> agentPermissions;
-
     public Company() {
     }
 

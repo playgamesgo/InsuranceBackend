@@ -1,18 +1,15 @@
 package me.bivhak.insurance.main.payload.request;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import me.bivhak.insurance.main.models.EPermission;
-
-import java.util.Set;
+import org.springframework.data.relational.core.mapping.Embedded;
 
 @Getter
 @Setter
 public class AssignAgentRequest {
-    @NotNull
+    @Embedded.Nullable
     private Long agentId;
 
-    @NotNull
-    private Set<EPermission> permissions;
+    @Embedded.Nullable
+    private String agentName;
 }

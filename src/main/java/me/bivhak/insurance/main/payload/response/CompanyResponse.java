@@ -12,13 +12,11 @@ public class CompanyResponse {
     private String name;
     private String email;
     private Set<AgentResponse> agents;
-    private Set<CompanyAgentResponse> agentPermissions;
 
-    public CompanyResponse(Long id, String name, String email, Set<AgentResponse> agents, Set<CompanyAgentResponse> agentPermissions) {
+    public CompanyResponse(Long id, String name, String email, Set<AgentResponse> agents) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.agents = agents;
-        this.agentPermissions = agentPermissions;
     }
 }

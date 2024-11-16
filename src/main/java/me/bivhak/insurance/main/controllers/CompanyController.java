@@ -7,10 +7,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import me.bivhak.insurance.main.models.Agent;
 import me.bivhak.insurance.main.models.Company;
-import me.bivhak.insurance.main.models.CompanyAgentPermission;
 import me.bivhak.insurance.main.payload.request.AssignAgentRequest;
 import me.bivhak.insurance.main.payload.response.AgentResponse;
-import me.bivhak.insurance.main.payload.response.CompanyAgentResponse;
 import me.bivhak.insurance.main.payload.response.CompanyResponse;
 import me.bivhak.insurance.main.payload.response.MessageResponse;
 import me.bivhak.insurance.main.repository.AgentRepository;
@@ -35,16 +33,15 @@ import java.util.stream.Collectors;
 public class CompanyController extends AbstractUserController {
     private final CompanyService companyService;
     private final AgentService agentService;
-    private final CompanyAgentService companyAgentService;
     private final AgentRepository agentRepository;
 
     public CompanyController(PasswordEncoder encoder, RoleRepository roleRepository,
                              @Qualifier("companyAuthenticationProvider") DaoAuthenticationProvider companyAuthenticationProvider,
-                             JwtUtils jwtUtils, RefreshTokenService refreshTokenService, CompanyService companyService, AgentService agentService, CompanyAgentService companyAgentService, AgentRepository agentRepository) {
+                             JwtUtils jwtUtils, RefreshTokenService refreshTokenService, CompanyService companyService,
+                             AgentService agentService, AgentRepository agentRepository) {
         super("company", encoder, roleRepository, companyAuthenticationProvider, jwtUtils, refreshTokenService, null, null, companyService);
         this.companyService = companyService;
         this.agentService = agentService;
-        this.companyAgentService = companyAgentService;
         this.agentRepository = agentRepository;
     }
 
@@ -72,14 +69,22 @@ public class CompanyController extends AbstractUserController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Company not found!"));
         }
 
-        Agent agent = agentService.findById(request.getAgentId()).orElse(null);
+        Agent agent;
+        if (request.getAgentId() != null) {
+            agent = agentService.findById(request.getAgentId()).orElse(null);
+        } else if (request.getAgentName() != null) {
+            agent = agentRepository.findByUsername(request.getAgentName()).orElse(null);
+        } else {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Agent not found!"));
+        }
+
+        if (agent == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Agent not found!"));
+        }
+
 
         company.getAgents().add(agent);
 
-        CompanyAgentPermission permission = new CompanyAgentPermission(company, agent, request.getPermissions());
-        companyAgentService.save(permission);
-
-        company.getAgentPermissions().add(permission);
         companyService.save(company);
 
         return ResponseEntity.ok(new MessageResponse("Agent assigned successfully!"));
@@ -118,57 +123,13 @@ public class CompanyController extends AbstractUserController {
 
         company.getAgents().remove(agent);
         companyService.save(company);
-        companyAgentService.deleteByCompanyIdAndAgentId(company.getId(), agent.getId());
 
         return ResponseEntity.ok(new MessageResponse("Agent unassigned successfully!"));
     }
 
-    @PutMapping("/updateagentpermissions")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Agent permissions updated successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: No user logged in!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: User is not a company!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: Agent not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: Agent not assigned to company!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
-    })
-    public ResponseEntity<?> updateAgentPermissions(@Valid @RequestBody AssignAgentRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
-        }
-
-        if (userDetails.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_COMPANY"))) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: User is not a company!"));
-        }
-
-        Company company = companyService.findById(userDetails.getId()).orElse(null);
-
-        if (company == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Company not found!"));
-        }
-
-        Agent agent = agentService.findById(request.getAgentId()).orElse(null);
-
-        if (agent == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Agent not found!"));
-        }
-
-        CompanyAgentPermission permission = companyAgentService.findByCompanyIdAndAgentId(company.getId(), agent.getId()).orElse(null);
-
-        if (permission == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Agent not assigned to company!"));
-        }
-
-        permission.setPermissions(request.getPermissions());
-        companyAgentService.save(permission);
-
-        return ResponseEntity.ok(new MessageResponse("Agent permissions updated successfully!"));
-    }
-
     @GetMapping("/getagents")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Agents retrieved successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CompanyAgentResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Agents retrieved successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AgentResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: No user logged in!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: User is not a company!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
@@ -189,52 +150,14 @@ public class CompanyController extends AbstractUserController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Company not found!"));
         }
 
-        List<CompanyAgentResponse> agents = new ArrayList<>();
-        company.getAgentPermissions().forEach(permission ->
-                agents.add(new CompanyAgentResponse(permission.getAgent().getId(), permission.getAgent().getUsername(), permission.getAgent().getEmail(), permission.getPermissions())));
+        List<AgentResponse> agents = new ArrayList<>();
+        company.getAgents().forEach(agent ->
+                agents.add(new AgentResponse(agent.getId(), agent.getUsername(), agent.getEmail())));
 
         return ResponseEntity.ok(agents);
     }
 
-    @GetMapping("/getagentpermissions")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Agent permissions retrieved successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CompanyAgentResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: No user logged in!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: User is not a company!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: Agent not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: Agent not assigned to company!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
-    })
-    public ResponseEntity<?> getAgentPermissions(Long agentId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
-        }
 
-        if (userDetails.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_COMPANY"))) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: User is not a company!"));
-        }
-
-        Company company = companyService.findById(userDetails.getId()).orElse(null);
-
-        if (company == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Company not found!"));
-        }
-
-        Agent agent = agentService.findById(agentId).orElse(null);
-
-        if (agent == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Agent not found!"));
-        }
-
-        CompanyAgentPermission permission = companyAgentService.findByCompanyIdAndAgentId(company.getId(), agent.getId()).orElse(null);
-
-        if (permission == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Agent not assigned to company!"));
-        }
-
-        return ResponseEntity.ok(new CompanyAgentResponse(permission.getAgent().getId(), permission.getAgent().getUsername(), permission.getAgent().getEmail(), permission.getPermissions()));
-    }
     @PostMapping("/pinuser")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Agent pinned to company successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
@@ -300,9 +223,6 @@ public class CompanyController extends AbstractUserController {
 
         return ResponseEntity.ok(new CompanyResponse(company.getId(), company.getUsername(), company.getEmail(),
                 company.getAgents().stream().map(agent ->
-                        new AgentResponse(agent.getId(), agent.getUsername(), agent.getEmail())).collect(Collectors.toSet()),
-                company.getAgentPermissions().stream().map(permission ->
-                        new CompanyAgentResponse(permission.getAgent().getId(), permission.getAgent().getUsername(),
-                                permission.getAgent().getEmail(), permission.getPermissions())).collect(Collectors.toSet())));
+                        new AgentResponse(agent.getId(), agent.getUsername(), agent.getEmail())).collect(Collectors.toSet())));
     }
 }

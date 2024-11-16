@@ -71,8 +71,8 @@ public class InsuranceController {
 
         // Check if user is an agent and has permission to create insurance for this company
         if (userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_AGENT")) &&
-                company.getAgentPermissions().stream().noneMatch(a -> a.getAgent().getId().equals(userDetails.getId()) &&
-                        a.getPermissions().contains(EPermission.CREATE_INSURANCE))) {
+                agentService.findById(userDetails.getId()).isPresent() &&
+                !company.getAgents().contains(agentService.findById(userDetails.getId()).get())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No permission to create insurance!"));
         }
 
@@ -118,8 +118,8 @@ public class InsuranceController {
 
         // Check is user is an agent and has permission to get insurance
         if (userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_AGENT")) &&
-                insurance.getCompany().getAgentPermissions().stream().noneMatch(a -> a.getAgent().getId().equals(userDetails.getId()) &&
-                        a.getPermissions().contains(EPermission.VIEW_INSURANCE))) {
+                agentService.findById(userDetails.getId()).isPresent() &&
+                insurance.getAgents().stream().noneMatch(a -> a.getAgent().getId().equals(userDetails.getId()))) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No permission to get insurance!"));
         }
 
@@ -173,8 +173,8 @@ public class InsuranceController {
 
         // Check if user is an agent and has permission to update insurance for this company
         if (userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_AGENT")) &&
-                insurance.getCompany().getAgentPermissions().stream().noneMatch(a -> a.getAgent().getId().equals(userDetails.getId()) &&
-                        a.getPermissions().contains(EPermission.UPDATE_INSURANCE))) {
+                agentService.findById(userDetails.getId()).isPresent() &&
+                !insurance.getCompany().getAgents().contains(agentService.findById(userDetails.getId()).get())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No permission to update insurance!"));
         }
 
@@ -244,8 +244,8 @@ public class InsuranceController {
 
         // Check if user is an agent and has permission to delete insurance
         if (userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_AGENT")) &&
-                insurance.getCompany().getAgentPermissions().stream().noneMatch(a -> a.getAgent().getId().equals(userDetails.getId()) &&
-                        a.getPermissions().contains(EPermission.DELETE_INSURANCE))) {
+                agentService.findById(userDetails.getId()).isPresent() &&
+                insurance.getAgents().stream().noneMatch(a -> a.getAgent().getId().equals(userDetails.getId()))) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No permission to delete insurance!"));
         }
 
@@ -282,7 +282,7 @@ public class InsuranceController {
         // Get all insurances filtered by company
         return ResponseEntity.ok(insuranceService.findAll().stream().filter(i -> i.getCompany().getId().equals(companyId))
                 .map(i -> new InsuranceResponse(i.getId(), i.getCompany().getId(), i.getName(), i.getDescription(),
-                i.getObjectInsurance(), i.getRiskInsurance(), i.getConditionsInsurance(),
-                i.getMaxAmount(), i.getAmount(), i.getExpiresIn(), i.getDuration(), i.getAgents())));
-        }
+                        i.getObjectInsurance(), i.getRiskInsurance(), i.getConditionsInsurance(),
+                        i.getMaxAmount(), i.getAmount(), i.getExpiresIn(), i.getDuration(), i.getAgents())));
+    }
 }
