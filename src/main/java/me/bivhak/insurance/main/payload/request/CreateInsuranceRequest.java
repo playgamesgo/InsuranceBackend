@@ -1,40 +1,40 @@
 package me.bivhak.insurance.main.payload.request;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 public class CreateInsuranceRequest {
-    @NotBlank
+    @NotNull
     private Long companyId;
 
-    @NotBlank
+    @NotNull
     private String name;
 
-    @NotBlank
+    @NotNull
     private String description;
 
-    @NotBlank
+    @NotNull
     private String objectInsurance;
 
-    @NotBlank
+    @NotNull
     private String riskInsurance;
 
-    @NotBlank
+    @NotNull
     private String conditionsInsurance;
 
-    @NotBlank
+    @NotNull
     private Float maxAmount;
 
-    @NotBlank
+    @NotNull
     private Float amount;
 
-    @NotBlank
+    @NotNull
     private String expiresIn;
 
-    @NotBlank
+    @NotNull
     private Float duration;
 
     public CreateInsuranceRequest() {

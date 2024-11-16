@@ -1,6 +1,6 @@
 package me.bivhak.insurance.main.payload.request;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.relational.core.mapping.Embedded;
@@ -8,7 +8,7 @@ import org.springframework.data.relational.core.mapping.Embedded;
 @Getter
 @Setter
 public class UpdateInsuranceRequest {
-    @NotBlank
+    @NotNull(message = "Company id is required")
     private Long companyId;
 
     @Embedded.Nullable
