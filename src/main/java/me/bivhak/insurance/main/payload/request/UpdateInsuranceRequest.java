@@ -18,9 +18,6 @@ public class UpdateInsuranceRequest {
     private String description;
 
     @Embedded.Nullable
-    private String typeInsurance;
-
-    @Embedded.Nullable
     private String objectInsurance;
 
     @Embedded.Nullable
@@ -35,18 +32,25 @@ public class UpdateInsuranceRequest {
     @Embedded.Nullable
     private Float amount;
 
+    @Embedded.Nullable
+    private String expiresIn;
+
+    @Embedded.Nullable
+    private Float duration;
+
     public UpdateInsuranceRequest() {
     }
 
-    public UpdateInsuranceRequest(Long companyId, String name, String description, String typeInsurance, String objectInsurance, String riskInsurance, String conditionsInsurance, float maxAmount, float amount) {
+    public UpdateInsuranceRequest(Long companyId, String name, String description, String objectInsurance, String riskInsurance, String conditionsInsurance, Float maxAmount, Float amount, String expiresIn, Float duration) {
         this.companyId = companyId;
         this.name = name;
         this.description = description;
-        this.typeInsurance = typeInsurance;
         this.objectInsurance = objectInsurance;
         this.riskInsurance = riskInsurance;
         this.conditionsInsurance = conditionsInsurance;
         this.maxAmount = maxAmount;
         this.amount = amount;
+        this.expiresIn = expiresIn;
+        this.duration = duration;
     }
 }

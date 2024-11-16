@@ -104,8 +104,7 @@ public class WebSecurityConfig {
                 registry.addMapping("/**")
                         .allowedOriginPatterns(frontendUrl)
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
-                        .allowedHeaders("*")
-                        .allowCredentials(false);
+                        .allowedHeaders("*").maxAge(3600);
             }
         };
     }

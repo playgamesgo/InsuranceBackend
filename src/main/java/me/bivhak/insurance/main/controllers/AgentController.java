@@ -7,12 +7,10 @@ import me.bivhak.insurance.main.services.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/api/agent")
 public class AgentController extends AbstractUserController {
 

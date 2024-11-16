@@ -17,9 +17,6 @@ public class CreateInsuranceRequest {
     private String description;
 
     @NotBlank
-    private String typeInsurance;
-
-    @NotBlank
     private String objectInsurance;
 
     @NotBlank
@@ -34,18 +31,25 @@ public class CreateInsuranceRequest {
     @NotBlank
     private Float amount;
 
+    @NotBlank
+    private String expiresIn;
+
+    @NotBlank
+    private Float duration;
+
     public CreateInsuranceRequest() {
     }
 
-    public CreateInsuranceRequest(Long companyId, String name, String description, String typeInsurance, String objectInsurance, String riskInsurance, String conditionsInsurance, float maxAmount, float amount) {
+    public CreateInsuranceRequest(Long companyId, String name, String description, String objectInsurance, String riskInsurance, String conditionsInsurance, Float maxAmount, Float amount, String expiresIn, Float duration) {
         this.companyId = companyId;
         this.name = name;
         this.description = description;
-        this.typeInsurance = typeInsurance;
         this.objectInsurance = objectInsurance;
         this.riskInsurance = riskInsurance;
         this.conditionsInsurance = conditionsInsurance;
         this.maxAmount = maxAmount;
         this.amount = amount;
+        this.expiresIn = expiresIn;
+        this.duration = duration;
     }
 }

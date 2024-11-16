@@ -63,24 +63,25 @@ public class InsuranceController {
         }
 
         if (createInsuranceRequest.getName() == null || createInsuranceRequest.getDescription() == null ||
-                createInsuranceRequest.getTypeInsurance() == null || createInsuranceRequest.getObjectInsurance() == null ||
+                createInsuranceRequest.getExpiresIn() == null || createInsuranceRequest.getObjectInsurance() == null ||
                 createInsuranceRequest.getRiskInsurance() == null || createInsuranceRequest.getConditionsInsurance() == null ||
-                createInsuranceRequest.getMaxAmount() == null || createInsuranceRequest.getAmount() == null) {
+                createInsuranceRequest.getMaxAmount() == null || createInsuranceRequest.getAmount() == null ||
+                createInsuranceRequest.getDuration() == null) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: All fields are required!"));
         }
 
         Insurance insurance = new Insurance(company,
-                createInsuranceRequest.getName(), createInsuranceRequest.getDescription(),
-                createInsuranceRequest.getTypeInsurance(), createInsuranceRequest.getObjectInsurance(),
+                createInsuranceRequest.getName(), createInsuranceRequest.getDescription(), createInsuranceRequest.getObjectInsurance(),
                 createInsuranceRequest.getRiskInsurance(), createInsuranceRequest.getConditionsInsurance(),
-                createInsuranceRequest.getMaxAmount(), createInsuranceRequest.getAmount()
+                createInsuranceRequest.getMaxAmount(), createInsuranceRequest.getAmount(), createInsuranceRequest.getExpiresIn(),
+                createInsuranceRequest.getDuration()
         );
 
         insuranceService.save(insurance);
 
         return ResponseEntity.ok(new InsuranceResponse(insurance.getId(), insurance.getCompany().getId(), insurance.getName(), insurance.getDescription(),
-                insurance.getTypeInsurance(), insurance.getObjectInsurance(), insurance.getRiskInsurance(),
-                insurance.getConditionsInsurance(), insurance.getMaxAmount(), insurance.getAmount()));
+                insurance.getObjectInsurance(), insurance.getRiskInsurance(), insurance.getConditionsInsurance(),
+                insurance.getMaxAmount(), insurance.getAmount(), insurance.getExpiresIn(), insurance.getDuration()));
     }
 
     @GetMapping("/get")
@@ -113,8 +114,8 @@ public class InsuranceController {
         }
 
         return ResponseEntity.ok(new InsuranceResponse(insurance.getId(), insurance.getCompany().getId(), insurance.getName(), insurance.getDescription(),
-                insurance.getTypeInsurance(), insurance.getObjectInsurance(), insurance.getRiskInsurance(),
-                insurance.getConditionsInsurance(), insurance.getMaxAmount(), insurance.getAmount()));
+                insurance.getObjectInsurance(), insurance.getRiskInsurance(), insurance.getConditionsInsurance(),
+                insurance.getMaxAmount(), insurance.getAmount(), insurance.getExpiresIn(), insurance.getDuration()));
     }
 
     @PutMapping("/update")
@@ -148,18 +149,19 @@ public class InsuranceController {
 
         if (updateInsuranceRequest.getName() != null) insurance.setName(updateInsuranceRequest.getName());
         if (updateInsuranceRequest.getDescription() != null) insurance.setDescription(updateInsuranceRequest.getDescription());
-        if (updateInsuranceRequest.getTypeInsurance() != null) insurance.setTypeInsurance(updateInsuranceRequest.getTypeInsurance());
         if (updateInsuranceRequest.getObjectInsurance() != null) insurance.setObjectInsurance(updateInsuranceRequest.getObjectInsurance());
         if (updateInsuranceRequest.getRiskInsurance() != null) insurance.setRiskInsurance(updateInsuranceRequest.getRiskInsurance());
         if (updateInsuranceRequest.getConditionsInsurance() != null) insurance.setConditionsInsurance(updateInsuranceRequest.getConditionsInsurance());
         if (updateInsuranceRequest.getMaxAmount() != null) insurance.setMaxAmount(updateInsuranceRequest.getMaxAmount());
         if (updateInsuranceRequest.getAmount() != null) insurance.setAmount(updateInsuranceRequest.getAmount());
+        if (updateInsuranceRequest.getExpiresIn() != null) insurance.setExpiresIn(updateInsuranceRequest.getExpiresIn());
+        if (updateInsuranceRequest.getDuration() != null) insurance.setDuration(updateInsuranceRequest.getDuration());
 
         insuranceService.save(insurance);
 
         return ResponseEntity.ok(new InsuranceResponse(insurance.getId(), insurance.getCompany().getId(), insurance.getName(), insurance.getDescription(),
-                insurance.getTypeInsurance(), insurance.getObjectInsurance(), insurance.getRiskInsurance(),
-                insurance.getConditionsInsurance(), insurance.getMaxAmount(), insurance.getAmount()));
+                insurance.getObjectInsurance(), insurance.getRiskInsurance(), insurance.getConditionsInsurance(),
+                insurance.getMaxAmount(), insurance.getAmount(), insurance.getExpiresIn(), insurance.getDuration()));
     }
 
     @DeleteMapping("/delete")
