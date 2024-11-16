@@ -8,30 +8,40 @@ import me.bivhak.insurance.main.exception.TokenRefreshException;
 import me.bivhak.insurance.main.models.RefreshToken;
 import me.bivhak.insurance.main.repository.RefreshTokenRepository;
 import me.bivhak.insurance.main.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RefreshTokenService {
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
+    private final AgentService agentService;
+    private final CompanyService companyService;
+
     @Value("${backend.app.jwtRefreshExpirationMs}")
     private Long refreshTokenDurationMs;
 
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, UserRepository userRepository, AgentService agentService, CompanyService companyService) {
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.userRepository = userRepository;
+        this.agentService = agentService;
+        this.companyService = companyService;
+    }
 
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
     }
 
-    public RefreshToken createRefreshToken(Long userId) {
+    public RefreshToken createRefreshToken(String type, Long userId) {
         RefreshToken refreshToken = new RefreshToken();
 
-        refreshToken.setUser(userRepository.findById(userId).get());
+        switch (type) {
+            case "user" -> refreshToken.setUser(userRepository.findById(userId).get());
+            case "agent" -> refreshToken.setAgent(agentService.findById(userId).get());
+            case "company" -> refreshToken.setCompany(companyService.findById(userId).get());
+        }
+
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
         refreshToken.setToken(UUID.randomUUID().toString());
 
@@ -49,7 +59,11 @@ public class RefreshTokenService {
     }
 
     @Transactional
-    public int deleteByUserId(Long userId) {
-        return refreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
+    public void deleteByUserId(String type, Long userId) {
+        switch (type) {
+            case "user" -> refreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
+            case "agent" -> refreshTokenRepository.deleteByAgent(agentService.findById(userId).get());
+            case "company" -> refreshTokenRepository.deleteByCompany(companyService.findById(userId).get());
+        }
     }
 }

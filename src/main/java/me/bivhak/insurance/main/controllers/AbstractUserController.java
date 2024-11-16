@@ -125,7 +125,7 @@ public abstract class AbstractUserController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String jwt = jwtUtils.generateJwtToken(userDetails);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(type, userDetails.getId());
 
         return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), userDetails.getId(),
                 userDetails.getUsername(), userDetails.getEmail(), userDetails.getAuthorities().iterator().next().getAuthority()));
@@ -137,14 +137,39 @@ public abstract class AbstractUserController {
             @ApiResponse(responseCode = "400", description = "Error: Invalid refresh token!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
     })
     public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequest refreshRequest) {
-        return refreshTokenService.findByToken(refreshRequest.getRefreshToken())
-                .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .map(userDetails -> {
-                    String jwt = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
-                    return ResponseEntity.ok(new TokenRefreshResponse(jwt, refreshRequest.getRefreshToken()));
-                })
-                .orElseThrow(() -> new TokenRefreshException(refreshRequest.getRefreshToken(), "Refresh token is not in database!"));
+        switch (type) {
+            case "user" -> {
+                return refreshTokenService.findByToken(refreshRequest.getRefreshToken())
+                        .map(refreshTokenService::verifyExpiration)
+                        .map(RefreshToken::getUser)
+                        .map(userDetails -> {
+                            String jwt = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
+                            return ResponseEntity.ok(new TokenRefreshResponse(jwt, refreshRequest.getRefreshToken()));
+                        })
+                        .orElseThrow(() -> new TokenRefreshException(refreshRequest.getRefreshToken(), "Refresh token is not in database!"));
+            }
+            case "agent" -> {
+                return refreshTokenService.findByToken(refreshRequest.getRefreshToken())
+                        .map(refreshTokenService::verifyExpiration)
+                        .map(RefreshToken::getAgent)
+                        .map(agentDetails -> {
+                            String jwt = jwtUtils.generateTokenFromUsername(agentDetails.getUsername());
+                            return ResponseEntity.ok(new TokenRefreshResponse(jwt, refreshRequest.getRefreshToken()));
+                        })
+                        .orElseThrow(() -> new TokenRefreshException(refreshRequest.getRefreshToken(), "Refresh token is not in database!"));
+            }
+            case "company" -> {
+                return refreshTokenService.findByToken(refreshRequest.getRefreshToken())
+                        .map(refreshTokenService::verifyExpiration)
+                        .map(RefreshToken::getCompany)
+                        .map(companyDetails -> {
+                            String jwt = jwtUtils.generateTokenFromUsername(companyDetails.getUsername());
+                            return ResponseEntity.ok(new TokenRefreshResponse(jwt, refreshRequest.getRefreshToken()));
+                        })
+                        .orElseThrow(() -> new TokenRefreshException(refreshRequest.getRefreshToken(), "Refresh token is not in database!"));
+            }
+        }
+        return null;
     }
 
     @PostMapping("/signout")
@@ -155,7 +180,7 @@ public abstract class AbstractUserController {
     public ResponseEntity<?> signOut() {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = userDetails.getId();
-        refreshTokenService.deleteByUserId(userId);
+        refreshTokenService.deleteByUserId(type, userId);
         return ResponseEntity.ok(new MessageResponse("Log out successful!"));
     }
 }

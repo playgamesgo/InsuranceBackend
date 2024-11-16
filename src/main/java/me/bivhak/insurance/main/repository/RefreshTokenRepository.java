@@ -2,6 +2,8 @@ package me.bivhak.insurance.main.repository;
 
 import java.util.Optional;
 
+import me.bivhak.insurance.main.models.Agent;
+import me.bivhak.insurance.main.models.Company;
 import me.bivhak.insurance.main.models.RefreshToken;
 import me.bivhak.insurance.main.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,5 +15,11 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
   Optional<RefreshToken> findByToken(String token);
 
   @Modifying
-  int deleteByUser(User user);
+  void deleteByUser(User user);
+
+  @Modifying
+  void deleteByAgent(Agent agent);
+
+  @Modifying
+  void deleteByCompany(Company company);
 }

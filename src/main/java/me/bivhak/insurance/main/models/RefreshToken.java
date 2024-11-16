@@ -10,21 +10,29 @@ import java.time.Instant;
 @Setter
 @Entity(name = "refreshtoken")
 public class RefreshToken {
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
 
-  @OneToOne
-  @JoinColumn(name = "user_id", referencedColumnName = "id")
-  private User user;
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 
-  @Column(nullable = false, unique = true)
-  private String token;
+    @OneToOne
+    @JoinColumn(name = "agent_id", referencedColumnName = "id")
+    private Agent agent;
 
-  @Column(nullable = false)
-  private Instant expiryDate;
+    @OneToOne
+    @JoinColumn(name = "company_id", referencedColumnName = "id")
+    private Company company;
 
-  public RefreshToken() {
-  }
+    @Column(nullable = false, unique = true)
+    private String token;
+
+    @Column(nullable = false)
+    private Instant expiryDate;
+
+    public RefreshToken() {
+    }
 
 }

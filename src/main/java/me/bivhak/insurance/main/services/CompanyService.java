@@ -9,6 +9,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 public class CompanyService implements UserDetailsService {
     @Autowired
@@ -32,5 +34,9 @@ public class CompanyService implements UserDetailsService {
 
     public void save(Company company) {
         companyRepository.save(company);
+    }
+
+    public Optional<Company> findById(Long userId) {
+        return companyRepository.findById(userId);
     }
 }
