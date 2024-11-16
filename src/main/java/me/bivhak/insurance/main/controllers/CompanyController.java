@@ -238,7 +238,7 @@ public class CompanyController extends AbstractUserController {
             @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: Agent not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
     })
-    public ResponseEntity<?> getAssignedInsurances(Long agentId) {
+    public ResponseEntity<?> getAssignedInsurances(@Valid Long agentId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
