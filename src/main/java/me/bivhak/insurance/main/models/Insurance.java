@@ -28,10 +28,6 @@ public class Insurance {
 
     @NotBlank
     @Size(max = 64)
-    private String typeInsurance;
-
-    @NotBlank
-    @Size(max = 64)
     private String objectInsurance;
 
     @NotBlank
@@ -50,18 +46,27 @@ public class Insurance {
     @Size(max = 64)
     private float amount;
 
+    @NotBlank
+    @Size(max = 64)
+    private String expiresIn;
+
+    @NotBlank
+    @Size(max = 64)
+    private float duration;
+
     public Insurance() {
     }
 
-    public Insurance(Company company, String name, String description, String typeInsurance, String objectInsurance, String riskInsurance, String conditionsInsurance, float maxAmount, float amount) {
+    public Insurance(Company company, String name, String description, String objectInsurance, String riskInsurance, String conditionsInsurance, float maxAmount, float amount, String expiresIn, float duration) {
         this.company = company;
         this.name = name;
         this.description = description;
-        this.typeInsurance = typeInsurance;
         this.objectInsurance = objectInsurance;
         this.riskInsurance = riskInsurance;
         this.conditionsInsurance = conditionsInsurance;
         this.maxAmount = maxAmount;
         this.amount = amount;
+        this.expiresIn = expiresIn;
+        this.duration = duration;
     }
 }

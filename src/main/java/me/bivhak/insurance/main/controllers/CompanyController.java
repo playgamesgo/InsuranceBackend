@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/api/company")
 public class CompanyController extends AbstractUserController {
     private final CompanyService companyService;
