@@ -33,15 +33,6 @@ public class CompanyService implements UserDetailsService {
         return companyRepository.existsByUsername(username);
     }
 
-    public ResponseEntity<Boolean> pinUser(String login , String nameOfCompany) {
-        Agent agent = agentRepository.findByUsername(login)
-                .orElseThrow(() ->  new UsernameNotFoundException("Agent Not Found with username: " + login));
-        Company company = companyRepository.findByUsername(nameOfCompany)
-                .orElseThrow(() -> new UsernameNotFoundException("Company Not Found with username: " + nameOfCompany));
-
-        return ResponseEntity.ok(company.getAgents().add(agent));
-    }
-
     public boolean existsByEmail(String email) {
         return companyRepository.existsByEmail(email);
     }
