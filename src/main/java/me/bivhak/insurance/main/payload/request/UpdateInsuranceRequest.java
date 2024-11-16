@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.relational.core.mapping.Embedded;
 
+import java.util.Set;
+
 @Getter
 @Setter
 public class UpdateInsuranceRequest {
@@ -38,19 +40,6 @@ public class UpdateInsuranceRequest {
     @Embedded.Nullable
     private Float duration;
 
-    public UpdateInsuranceRequest() {
-    }
-
-    public UpdateInsuranceRequest(Long companyId, String name, String description, String objectInsurance, String riskInsurance, String conditionsInsurance, Float maxAmount, Float amount, String expiresIn, Float duration) {
-        this.companyId = companyId;
-        this.name = name;
-        this.description = description;
-        this.objectInsurance = objectInsurance;
-        this.riskInsurance = riskInsurance;
-        this.conditionsInsurance = conditionsInsurance;
-        this.maxAmount = maxAmount;
-        this.amount = amount;
-        this.expiresIn = expiresIn;
-        this.duration = duration;
-    }
+    @Embedded.Nullable
+    private Set<AssignInsuranceAgentRequest> agents;
 }

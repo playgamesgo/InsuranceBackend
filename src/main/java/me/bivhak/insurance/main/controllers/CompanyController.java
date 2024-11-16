@@ -9,7 +9,9 @@ import me.bivhak.insurance.main.models.Agent;
 import me.bivhak.insurance.main.models.Company;
 import me.bivhak.insurance.main.models.CompanyAgentPermission;
 import me.bivhak.insurance.main.payload.request.AssignAgentRequest;
+import me.bivhak.insurance.main.payload.response.AgentResponse;
 import me.bivhak.insurance.main.payload.response.CompanyAgentResponse;
+import me.bivhak.insurance.main.payload.response.CompanyResponse;
 import me.bivhak.insurance.main.payload.response.MessageResponse;
 import me.bivhak.insurance.main.repository.AgentRepository;
 import me.bivhak.insurance.main.repository.RoleRepository;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -272,5 +275,34 @@ public class CompanyController extends AbstractUserController {
         return ResponseEntity.ok(new MessageResponse("Agent pinned to company successfully!"));
     }
 
+    @GetMapping("/self")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Company retrieved successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CompanyResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: No user logged in!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: User is not a company!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+    })
+    public ResponseEntity<?> getSelf() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
+        }
 
+        if (userDetails.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_COMPANY"))) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: User is not a company!"));
+        }
+
+        Company company = companyService.findById(userDetails.getId()).orElse(null);
+
+        if (company == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Company not found!"));
+        }
+
+        return ResponseEntity.ok(new CompanyResponse(company.getId(), company.getUsername(), company.getEmail(),
+                company.getAgents().stream().map(agent ->
+                        new AgentResponse(agent.getId(), agent.getUsername(), agent.getEmail())).collect(Collectors.toSet()),
+                company.getAgentPermissions().stream().map(permission ->
+                        new CompanyAgentResponse(permission.getAgent().getId(), permission.getAgent().getUsername(),
+                                permission.getAgent().getEmail(), permission.getPermissions())).collect(Collectors.toSet())));
+    }
 }

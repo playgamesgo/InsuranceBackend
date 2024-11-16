@@ -9,7 +9,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class AgentService implements UserDetailsService {
@@ -38,5 +40,9 @@ public class AgentService implements UserDetailsService {
 
     public Optional<Agent> findById(Long userId) {
         return agentRepository.findById(userId);
+    }
+
+    public List<Agent> findAllById(Set<Long> agentIds) {
+        return agentRepository.findAllById(agentIds);
     }
 }

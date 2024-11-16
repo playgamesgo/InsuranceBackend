@@ -1,10 +1,12 @@
 package me.bivhak.insurance.main.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Set;
 
 @Getter
 @Setter
@@ -18,41 +20,41 @@ public class Insurance {
     @ManyToOne(fetch = FetchType.LAZY)
     private Company company;
 
-    @NotBlank
+    @NotNull
     @Size(max = 64)
     private String name;
 
-    @NotBlank
+    @NotNull
     @Size(max = 1024)
     private String description;
 
-    @NotBlank
+    @NotNull
     @Size(max = 64)
     private String objectInsurance;
 
-    @NotBlank
+    @NotNull
     @Size(max = 64)
     private String riskInsurance;
 
-    @NotBlank
+    @NotNull
     @Size(max = 64)
     private String conditionsInsurance;
 
-    @NotBlank
-    @Size(max = 64)
+    @NotNull
     private float maxAmount;
 
-    @NotBlank
-    @Size(max = 64)
+    @NotNull
     private float amount;
 
-    @NotBlank
+    @NotNull
     @Size(max = 64)
     private String expiresIn;
 
-    @NotBlank
-    @Size(max = 64)
+    @NotNull
     private float duration;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    private Set<InsuranceAgentPermission> agents = Set.of();
 
     public Insurance() {
     }
