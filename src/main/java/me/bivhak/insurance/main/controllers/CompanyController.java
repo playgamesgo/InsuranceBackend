@@ -8,9 +8,7 @@ import jakarta.validation.Valid;
 import me.bivhak.insurance.main.models.Agent;
 import me.bivhak.insurance.main.models.Company;
 import me.bivhak.insurance.main.payload.request.AssignAgentRequest;
-import me.bivhak.insurance.main.payload.response.AgentResponse;
-import me.bivhak.insurance.main.payload.response.CompanyResponse;
-import me.bivhak.insurance.main.payload.response.MessageResponse;
+import me.bivhak.insurance.main.payload.response.*;
 import me.bivhak.insurance.main.repository.AgentRepository;
 import me.bivhak.insurance.main.repository.RoleRepository;
 import me.bivhak.insurance.main.security.jwt.JwtUtils;
@@ -34,15 +32,17 @@ public class CompanyController extends AbstractUserController {
     private final CompanyService companyService;
     private final AgentService agentService;
     private final AgentRepository agentRepository;
+    private final InsuranceService insuranceService;
 
     public CompanyController(PasswordEncoder encoder, RoleRepository roleRepository,
                              @Qualifier("companyAuthenticationProvider") DaoAuthenticationProvider companyAuthenticationProvider,
                              JwtUtils jwtUtils, RefreshTokenService refreshTokenService, CompanyService companyService,
-                             AgentService agentService, AgentRepository agentRepository) {
+                             AgentService agentService, AgentRepository agentRepository, InsuranceService insuranceService) {
         super("company", encoder, roleRepository, companyAuthenticationProvider, jwtUtils, refreshTokenService, null, null, companyService);
         this.companyService = companyService;
         this.agentService = agentService;
         this.agentRepository = agentRepository;
+        this.insuranceService = insuranceService;
     }
 
     @PostMapping("/assignagent")
@@ -228,5 +228,42 @@ public class CompanyController extends AbstractUserController {
         return ResponseEntity.ok(new CompanyResponse(company.getId(), company.getUsername(), company.getEmail(),
                 company.getAgents().stream().map(agent ->
                         new AgentResponse(agent.getId(), agent.getUsername(), agent.getEmail())).collect(Collectors.toSet())));
+    }
+
+    @GetMapping("/getassignedinsurances")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Assigned insurances retrieved successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = InsuranceResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: No user logged in!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: User is not a company!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: Agent not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+    })
+    public ResponseEntity<?> getAssignedInsurances(Long agentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
+        }
+
+        if (userDetails.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_COMPANY"))) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: User is not a company!"));
+        }
+
+        Company company = companyService.findById(userDetails.getId()).orElse(null);
+
+        if (company == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Company not found!"));
+        }
+
+        Agent agent = agentService.findById(agentId).orElse(null);
+
+        if (agent == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Agent not found!"));
+        }
+
+        return ResponseEntity.ok(insuranceService.findAll().stream()
+                .filter(insurance -> insurance.getAgents().stream().anyMatch(a -> a.getId().equals(agentId)))
+                .map(insurance -> new InsuranceResponse(insurance.getId(), company.getId(), insurance.getName(), insurance.getDescription(),
+                        insurance.getObjectInsurance(), insurance.getRiskInsurance(), insurance.getConditionsInsurance(),
+                        insurance.getMaxAmount(), insurance.getAmount(), insurance.getExpiresIn(), insurance.getDuration(), insurance.getAgents())));
     }
 }

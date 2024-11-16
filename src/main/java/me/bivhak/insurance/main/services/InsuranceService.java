@@ -1,10 +1,13 @@
 package me.bivhak.insurance.main.services;
 
+import me.bivhak.insurance.main.models.Agent;
+import me.bivhak.insurance.main.models.Company;
 import me.bivhak.insurance.main.models.Insurance;
 import me.bivhak.insurance.main.repository.InsuranceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Service
