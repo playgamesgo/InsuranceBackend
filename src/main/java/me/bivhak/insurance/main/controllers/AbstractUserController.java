@@ -178,7 +178,11 @@ public abstract class AbstractUserController {
             @ApiResponse(responseCode = "400", description = "Error: No user logged in!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
     })
     public ResponseEntity<?> signOut() {
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
+        }
+
         Long userId = userDetails.getId();
         refreshTokenService.deleteByUserId(type, userId);
         return ResponseEntity.ok(new MessageResponse("Log out successful!"));

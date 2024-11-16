@@ -32,8 +32,8 @@ public class AgentService implements UserDetailsService {
         return agentRepository.existsByEmail(email);
     }
 
-    public Agent save(Agent agent) {
-        return agentRepository.save(agent);
+    public void save(Agent agent) {
+        agentRepository.save(agent);
     }
 
     public Optional<Agent> findById(Long userId) {
