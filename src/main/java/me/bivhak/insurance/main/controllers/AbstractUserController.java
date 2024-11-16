@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 public abstract class AbstractUserController {
     private final String type;
     private final PasswordEncoder encoder;
@@ -143,7 +145,7 @@ public abstract class AbstractUserController {
                         .map(refreshTokenService::verifyExpiration)
                         .map(RefreshToken::getUser)
                         .map(userDetails -> {
-                            String jwt = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
+                            String jwt = jwtUtils.generateTokenFromUsername(userDetails.getUsername(), List.of(userDetails.getRole().getName().name()));
                             return ResponseEntity.ok(new TokenRefreshResponse(jwt, refreshRequest.getRefreshToken()));
                         })
                         .orElseThrow(() -> new TokenRefreshException(refreshRequest.getRefreshToken(), "Refresh token is not in database!"));
@@ -153,7 +155,7 @@ public abstract class AbstractUserController {
                         .map(refreshTokenService::verifyExpiration)
                         .map(RefreshToken::getAgent)
                         .map(agentDetails -> {
-                            String jwt = jwtUtils.generateTokenFromUsername(agentDetails.getUsername());
+                            String jwt = jwtUtils.generateTokenFromUsername(agentDetails.getUsername(), List.of(agentDetails.getRole().getName().name()));
                             return ResponseEntity.ok(new TokenRefreshResponse(jwt, refreshRequest.getRefreshToken()));
                         })
                         .orElseThrow(() -> new TokenRefreshException(refreshRequest.getRefreshToken(), "Refresh token is not in database!"));
@@ -163,7 +165,7 @@ public abstract class AbstractUserController {
                         .map(refreshTokenService::verifyExpiration)
                         .map(RefreshToken::getCompany)
                         .map(companyDetails -> {
-                            String jwt = jwtUtils.generateTokenFromUsername(companyDetails.getUsername());
+                            String jwt = jwtUtils.generateTokenFromUsername(companyDetails.getUsername(), List.of(companyDetails.getRole().getName().name()));
                             return ResponseEntity.ok(new TokenRefreshResponse(jwt, refreshRequest.getRefreshToken()));
                         })
                         .orElseThrow(() -> new TokenRefreshException(refreshRequest.getRefreshToken(), "Refresh token is not in database!"));

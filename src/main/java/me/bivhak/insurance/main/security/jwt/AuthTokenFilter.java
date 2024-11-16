@@ -6,10 +6,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import me.bivhak.insurance.main.models.Agent;
 import me.bivhak.insurance.main.services.AgentService;
 import me.bivhak.insurance.main.services.CompanyService;
-import me.bivhak.insurance.main.services.UserDetailsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,13 +45,19 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 UserDetails userDetails;
 
                 if (request.getRequestURI().startsWith("/api/user")) {
-                    userDetails = userDetailsService.loadUserByUsername(username);
+                    return;
                 } else if (request.getRequestURI().startsWith("/api/company")) {
                     userDetails = companyService.loadUserByUsername(username);
                 } else if (request.getRequestURI().startsWith("/api/agent")) {
                     userDetails = agentService.loadUserByUsername(username);
                 } else {
-                    return;
+                    if (jwtUtils.getRolesFromJwtToken(jwt).contains("ROLE_AGENT")) {
+                        userDetails = agentService.loadUserByUsername(username);
+                    } else if (jwtUtils.getRolesFromJwtToken(jwt).contains("ROLE_COMPANY")) {
+                        userDetails = companyService.loadUserByUsername(username);
+                    } else {
+                        return;
+                    }
                 }
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,

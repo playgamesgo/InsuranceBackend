@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import me.bivhak.insurance.main.models.Company;
 import me.bivhak.insurance.main.models.EPermission;
 import me.bivhak.insurance.main.models.Insurance;
@@ -35,9 +36,10 @@ public class InsuranceController {
             @ApiResponse(responseCode = "200", description = "Insurance created successfully!", content = @Content(schema = @Schema(implementation = InsuranceResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: No user logged in!", content = @Content(schema = @Schema(implementation = MessageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: No permission to create insurance!", content = @Content(schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(schema = @Schema(implementation = MessageResponse.class)))
+            @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: All fields are required!", content = @Content(schema = @Schema(implementation = MessageResponse.class)))
     })
-    public ResponseEntity<?> createInsurance(CreateInsuranceRequest createInsuranceRequest) {
+    public ResponseEntity<?> createInsurance(@Valid @RequestBody CreateInsuranceRequest createInsuranceRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
@@ -59,6 +61,13 @@ public class InsuranceController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No permission to create insurance!"));
         }
 
+        if (createInsuranceRequest.getName() == null || createInsuranceRequest.getDescription() == null ||
+                createInsuranceRequest.getTypeInsurance() == null || createInsuranceRequest.getObjectInsurance() == null ||
+                createInsuranceRequest.getRiskInsurance() == null || createInsuranceRequest.getConditionsInsurance() == null ||
+                createInsuranceRequest.getMaxAmount() == null || createInsuranceRequest.getAmount() == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: All fields are required!"));
+        }
+
         Insurance insurance = new Insurance(company,
                 createInsuranceRequest.getName(), createInsuranceRequest.getDescription(),
                 createInsuranceRequest.getTypeInsurance(), createInsuranceRequest.getObjectInsurance(),
@@ -68,7 +77,7 @@ public class InsuranceController {
 
         insuranceService.save(insurance);
 
-        return ResponseEntity.ok(new InsuranceResponse(insurance.getId(), insurance.getName(), insurance.getDescription(),
+        return ResponseEntity.ok(new InsuranceResponse(insurance.getId(), insurance.getCompany().getId(), insurance.getName(), insurance.getDescription(),
                 insurance.getTypeInsurance(), insurance.getObjectInsurance(), insurance.getRiskInsurance(),
                 insurance.getConditionsInsurance(), insurance.getMaxAmount(), insurance.getAmount()));
     }
@@ -102,7 +111,7 @@ public class InsuranceController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No permission to get insurance!"));
         }
 
-        return ResponseEntity.ok(new InsuranceResponse(insurance.getId(), insurance.getName(), insurance.getDescription(),
+        return ResponseEntity.ok(new InsuranceResponse(insurance.getId(), insurance.getCompany().getId(), insurance.getName(), insurance.getDescription(),
                 insurance.getTypeInsurance(), insurance.getObjectInsurance(), insurance.getRiskInsurance(),
                 insurance.getConditionsInsurance(), insurance.getMaxAmount(), insurance.getAmount()));
     }
@@ -114,7 +123,7 @@ public class InsuranceController {
             @ApiResponse(responseCode = "400", description = "Error: No permission to update insurance!", content = @Content(schema = @Schema(implementation = MessageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: Insurance not found!", content = @Content(schema = @Schema(implementation = MessageResponse.class)))
     })
-    public ResponseEntity<?> updateInsurance(UpdateInsuranceRequest updateInsuranceRequest) {
+    public ResponseEntity<?> updateInsurance(@Valid @RequestBody UpdateInsuranceRequest updateInsuranceRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
@@ -147,7 +156,7 @@ public class InsuranceController {
 
         insuranceService.save(insurance);
 
-        return ResponseEntity.ok(new InsuranceResponse(insurance.getId(), insurance.getName(), insurance.getDescription(),
+        return ResponseEntity.ok(new InsuranceResponse(insurance.getId(), insurance.getCompany().getId(), insurance.getName(), insurance.getDescription(),
                 insurance.getTypeInsurance(), insurance.getObjectInsurance(), insurance.getRiskInsurance(),
                 insurance.getConditionsInsurance(), insurance.getMaxAmount(), insurance.getAmount()));
     }

@@ -7,6 +7,7 @@ import me.bivhak.insurance.main.models.Insurance;
 @Getter
 @Setter
 public class InsuranceResponse {
+    private Long id;
     private Long companyId;
     private String name;
     private String description;
@@ -20,7 +21,8 @@ public class InsuranceResponse {
     public InsuranceResponse() {
     }
 
-    public InsuranceResponse(Long companyId, String name, String description, String typeInsurance, String objectInsurance, String riskInsurance, String conditionsInsurance, float maxAmount, float amount) {
+    public InsuranceResponse(Long id, Long companyId, String name, String description, String typeInsurance, String objectInsurance, String riskInsurance, String conditionsInsurance, float maxAmount, float amount) {
+        this.id = id;
         this.companyId = companyId;
         this.name = name;
         this.description = description;
@@ -34,6 +36,7 @@ public class InsuranceResponse {
 
     public static InsuranceResponse fromInsurance(Insurance insurance) {
         return new InsuranceResponse(
+                insurance.getId(),
                 insurance.getCompany().getId(),
                 insurance.getName(),
                 insurance.getDescription(),
