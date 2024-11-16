@@ -134,7 +134,7 @@ public class CompanyController extends AbstractUserController {
 
     @GetMapping("/getagents")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Agents retrieved successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AgentResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Agents retrieved successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AgentInsuranceResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: No user logged in!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: User is not a company!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
