@@ -158,15 +158,57 @@ public class CompanyController extends AbstractUserController {
         List<AgentInsuranceResponse> agents = new ArrayList<>();
         company.getAgents().forEach(agent ->
                 agents.add(new AgentInsuranceResponse(agent.getId(), agent.getUsername(), agent.getEmail(),
-                        insuranceService.findAll().stream().filter(insurance -> insurance.getAgents().stream().anyMatch(a -> a.getId().equals(agent.getId())))
+                        insuranceService.findAll().stream().filter(insurance -> insurance.getAgents().stream()
+                                        .anyMatch(a -> a.getId().equals(agent.getId()) && insurance.getCompany().getId().equals(company.getId())))
                                 .map(insurance -> new InsuranceResponse(insurance.getId(), insurance.getCompany().getId(),
                                         insurance.getName(), insurance.getDescription(), insurance.getObjectInsurance(),
                                         insurance.getRiskInsurance(), insurance.getConditionsInsurance(), insurance.getMaxAmount(),
                                         insurance.getAmount(), insurance.getExpiresIn(), insurance.getDuration(),
                                         Set.of())).collect(Collectors.toSet()
-                ))));
+                                ))));
 
         return ResponseEntity.ok(agents);
+    }
+
+    @GetMapping("/getagent")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Agent retrieved successfully!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AgentInsuranceResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: No user logged in!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: User is not a company!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: Company not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Error: Agent not found!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+    })
+    public ResponseEntity<?> getAgent(Long agentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: No user logged in!"));
+        }
+
+        if (userDetails.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_COMPANY"))) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: User is not a company!"));
+        }
+
+        Company company = companyService.findById(userDetails.getId()).orElse(null);
+
+        if (company == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Company not found!"));
+        }
+
+        Agent agent = agentService.findById(agentId).orElse(null);
+
+        if (agent == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Agent not found!"));
+        }
+
+        return ResponseEntity.ok(new AgentInsuranceResponse(agent.getId(), agent.getUsername(), agent.getEmail(),
+                insuranceService.findAll().stream().filter(insurance -> insurance.getAgents().stream()
+                                .anyMatch(a -> a.getId().equals(agent.getId()) && insurance.getCompany().getId().equals(company.getId())))
+                        .map(insurance -> new InsuranceResponse(insurance.getId(), insurance.getCompany().getId(),
+                                insurance.getName(), insurance.getDescription(), insurance.getObjectInsurance(),
+                                insurance.getRiskInsurance(), insurance.getConditionsInsurance(), insurance.getMaxAmount(),
+                                insurance.getAmount(), insurance.getExpiresIn(), insurance.getDuration(),
+                                Set.of())).collect(Collectors.toSet()
+                        )));
     }
 
 
